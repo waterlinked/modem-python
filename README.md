@@ -5,7 +5,11 @@ Python library for communicating with Water Linked underwater modems.
 The library exposes the functionality of the modem: setting configuration, getting diagnostic, sending
 and receiving packets.
 
-Further information on the [Water Linked web site](https://waterlinked.com/underwater-communication/)
+## Resources
+
+* [Water Linked web site](https://waterlinked.com/underwater-communication/)
+* [Modem documentation](https://waterlinked.github.io/docs/modems/modem-m64/)
+* [Modem protocol specification](https://waterlinked.github.io/docs/modems/modem-m64-protocol/)
 
 ## Requirements
 
