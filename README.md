@@ -37,6 +37,8 @@ $ python
 >>>  modem.connect()
 >>>  modem.cmd_configure("a", 4)
 True
+>>>  modem.cmd_queue_packet(b"HelloSea")
+True
 ```
 
 A larger example is available in [example/example.py](example/example.py).
