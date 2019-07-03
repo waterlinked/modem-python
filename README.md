@@ -16,9 +16,9 @@ Further information on the [Water Linked web site](https://waterlinked.com/under
 ## Setup
 
 ```
-$ python -m pip install --user wlmodem
+$ python -m pip install --user crcmod pyserial wlmodem
 or
-(venv)$ python -m pip install wlmodem
+(venv)$ python -m pip install crcmod pyserial wlmodem
 ```
 
 ## Usage
