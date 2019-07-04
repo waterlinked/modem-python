@@ -273,13 +273,9 @@ class WlModemBase(object):
         """ Queue a data packet for transmission. Data must be of type bytes or bytearray """
         if self.payload_size < 1:
             raise WlModemGenericError("Connect before queueing data")
-        # Check if we have bytes, if not give error
-        # Ref: https://stackoverflow.com/a/34870210
-        try:
-            data.decode()
-        except AttributeError:
-            raise WlModemGenericError("Please encode data as bytes")
-        except UnicodeDecodeError:
+        # Anyone has a way of checking for bytes which supports duck-typing?
+        # The suggestion from https://stackoverflow.com/a/34870210 doesn't seem to work in Python 3
+        if not isinstance(data, (bytes, bytearray)):
             raise WlModemGenericError("Please encode data as bytes")
         if len(data) != self.payload_size:
             raise WlModemGenericError("Invalid payload size {} expected {}".format(len(data), self.payload_size))
