@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 """setup.py"""
 
-import os
-import sys
 from setuptools import setup
-from setuptools.command.test import test as TestCommand
 
 
 def read_content(filepath):
@@ -43,7 +40,7 @@ extras_require = {
     }
 
 setup(name='wlmodem',
-      version='1.0.1',
+      version='1.1.0',
       description='Python library for Water Linked underwater modems',
       long_description=long_description,
       long_description_content_type="text/markdown",

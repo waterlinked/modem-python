@@ -3,6 +3,7 @@ import unittest
 import sys
 from wlmodem.protocol import WlProtocolParser, WlModemBase, ModemSentence, CMD_GET_VERSION
 from wlmodem.protocol import WlModemGenericError, WlProtocolChecksumError, WlProtocolParseError
+from wlmodem.simulator import MockIODev
 
 class TestProtoParser(unittest.TestCase):
     def test_parser(self):
@@ -33,38 +34,6 @@ class TestProtoParser(unittest.TestCase):
         self.assertEqual(res.cmd, ord("p"))
         self.assertEqual(res.dir, ord("r"))
         self.assertEqual(res.options, [b'8', b'\n\n\n\n\n\n\n'])
-
-
-class MockIODev():
-    """ Mock io dev for unit testing """
-    def __init__(self, in_buf):
-        self.in_buf = bytearray(in_buf)
-        self.out_buf = bytearray()
-
-    @property
-    def in_waiting(self):
-        return len(self.in_buf)
-
-    def read(self, n):
-        if self.in_buf:
-            buf = bytearray()
-            buf.append(self.in_buf.pop(0))
-            return bytes(buf)
-
-    def write(self, data):
-        if isinstance(data, bytearray):
-            self.out_buf.extend(data)
-        else:
-            for ch in data:
-                self.out_buf.append(ch)
-
-    def feed(self, data):
-        for x in bytes(data):
-            self.in_buf.append(x)
-
-    @property
-    def port(self):
-        return "MockPort"
 
 
 class TestWlModemLowLevel(unittest.TestCase):

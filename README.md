@@ -102,6 +102,23 @@ if pkt:
     print("Got data:", pkt)
 ```
 
+## Simulator
+
+A `WlModemSimulator` class can be used to simulate communication with a modem without a physical modem.
+Once instantiated the object will behave similarly to a Water Linked Modem-M64.
+Data packets that are queued using the simulator object is returned after a timeout.
+
+```py
+>>> from wlmodem import WlModemSimulator
+>>> modem = WlModemSimulator()
+>>> modem.connect()
+True
+>>> modem.cmd_queue_packet(b"HelloSim")
+True
+>>> modem.get_data_packet()
+b'HelloSim'
+```
+
 ## Example
 
 A larger example is available in [example/example.py](example/example.py).

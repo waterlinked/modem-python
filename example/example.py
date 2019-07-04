@@ -5,7 +5,8 @@ from __future__ import division, print_function
 import logging
 import sys
 import time
-from wlmodem import WlModem, WlModemGenericError
+from wlmodem import WlModem
+
 
 def main():
     """ Demo code """
