@@ -1,6 +1,7 @@
 """
 Example of using the wlmodem libarary
 """
+from __future__ import division, print_function
 import logging
 import sys
 import time
@@ -17,10 +18,8 @@ def main():
     args = parser.parse_args()
 
     modem = WlModem(args.device, debug=args.verbose)
-    try:
-        modem.connect()
-    except WlModemGenericError as err:
-        print("Error connecting to modem: {}".format(err))
+    if not modem.connect():
+        print("Error connecting to modem")
         sys.exit(1)
 
     print("Set modem role and channel: ", end="")
@@ -48,6 +47,14 @@ def main():
     print("Queue length: ", modem.cmd_get_queue_length())
     print("Diagnostic  : ", modem.cmd_get_diagnostic())
 
+    timeout = 4
+    while timeout > 0:
+        link_up = modem.cmd_get_diagnostic().get("link_up")
+        print("Link is " + ("UP" if link_up else "DOWN"))
+        if link_up:
+            break
+        time.sleep(1.0)
+
     print("Wait for packet from other modem:")
     get = 2
     while get > 0:
@@ -56,6 +63,7 @@ def main():
             print("Got:", pkt)
         get -= 1
         time.sleep(0.1)
+
 
     print("Diagnostic  : ", modem.cmd_get_diagnostic())
 

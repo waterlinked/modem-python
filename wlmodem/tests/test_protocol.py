@@ -1,8 +1,8 @@
 """ Unittest """
 import unittest
 import sys
-from wlmodem import WlProtocolParser, WlModemBase, ModemSentence, CMD_GET_VERSION
-from wlmodem import WlModemGenericError, WlProtocolChecksumError, WlProtocolParseError
+from wlmodem.protocol import WlProtocolParser, WlModemBase, ModemSentence, CMD_GET_VERSION
+from wlmodem.protocol import WlModemGenericError, WlProtocolChecksumError, WlProtocolParseError
 
 class TestProtoParser(unittest.TestCase):
     def test_parser(self):
@@ -109,6 +109,18 @@ class TestWlModemLowLevel(unittest.TestCase):
         modem, _ = self._make_one(b"wzx\n")
         self.assertRaises(WlProtocolParseError, modem.get_packet)
 
+    def test_any_newline_is_accepted(self):
+        modem, _ = self._make_one(b"wcv\r\nwcv\rwcv\n")
+
+        pkt = modem.get_packet()
+        self.assertIsInstance(pkt, ModemSentence)
+
+        pkt = modem.get_packet()
+        self.assertIsInstance(pkt, ModemSentence)
+
+        pkt = modem.get_packet()
+        self.assertIsInstance(pkt, ModemSentence)
+
 
 class TestWlModem(unittest.TestCase):
     def _make_one(self, data):
@@ -118,11 +130,11 @@ class TestWlModem(unittest.TestCase):
 
     def test_connect_without_response_fails(self):
         modem, _ = self._make_one(b"")
-        self.assertRaises(WlModemGenericError, modem.connect)
+        self.assertFalse(modem.connect())
 
     def test_connect_with_response_is_success(self):
         modem, _ = self._make_one(b"wrv,1,0,1\nwrn,8\n")
-        modem.connect()
+        self.assertTrue(modem.connect())
         self.assertEqual(modem.payload_size, 8)
 
     def test_cmd_configure_works(self):
@@ -177,7 +189,7 @@ class TestWlModem(unittest.TestCase):
     def test_get_data(self):
         modem, _ = self._make_one(b"wrp,8,12345678\n")
         modem.payload_size = 8  # Faking that we are connected
-        data = modem.get_data_packet()
+        data = modem.get_data_packet(timeout=0.01)
         self.assertEqual(data, b"12345678")
 
     def test_get_data_is_queued_while_other_command_is_run(self):
@@ -189,10 +201,16 @@ class TestWlModem(unittest.TestCase):
 
     def test_non_blocking_get_data_with_no_data(self):
         modem, _ = self._make_one(b"")
-        data = modem.get_data_packet(block=False)
+        data = modem.get_data_packet(timeout=0)
         self.assertEqual(data, None)
 
     def test_non_blocking_get_data_with_data(self):
         modem, _ = self._make_one(b"wrp,8,12345678\n")
-        data = modem.get_data_packet(block=False)
+        data = modem.get_data_packet(timeout=0)
         self.assertEqual(data, b"12345678")
+
+    # def test_non_blocking_get_data_with_data(self):
+    #     modem, _ = self._make_one(b"wrp,8,12345678\n")
+    #     data = modem.get_data_packet(timeout=0)
+    #     self.assertEqual(data, b"12345678")
+

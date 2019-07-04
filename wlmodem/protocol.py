@@ -233,9 +233,11 @@ class WlModemBase(object):
         self.send_reset()
         version = self.cmd_get_version()
         if not version:
-            raise WlModemGenericError("Did not get expected response from modem")
+            log.error("Timeout connecting to modem")
+            return False
         if version[0] != 1:
-            raise WlModemGenericError("Unsupported major version {}".format(version))
+            log.warn("Unsupported major version {}".format(version))
+            return False
 
         version = ".".join([str(x) for x in version])
         log.info("Connect success. Modem protocol version %s", version)
@@ -243,10 +245,12 @@ class WlModemBase(object):
         # Get payload size
         payload = self.cmd_get_payload_size()
         if not payload:
-            raise WlModemGenericError("Timeout getting payload size")
+            log.warn("Timeout getting payload size")
+            return False
         self.payload_size = payload
 
         log.info("Connect success. Modem payload size %d", self.payload_size)
+        return True
 
     def cmd_get_version(self, timeout=0.5):
         """ Get modem version """
@@ -288,22 +292,23 @@ class WlModemBase(object):
             return is_ack(pkt.options[0])
         return False
 
-    def get_data_packet(self, block=True):
+    def get_data_packet(self, timeout=5):
         """
         Get data packet from another modem.
 
-        If block is True it waits until a data-packet is available and returns the bytes.
-        If block is False and no packet is available it returns None
+        Timeout specifies how long to wait until a data packet is available.
+        If no packet is available None is returned
         """
         if self._rx_queue:
             pkt = self._rx_queue.pop(0)
             return pkt.options[1]
-        if block:
-            while True:
-                pkt = self.wait_sentence(RESP_GOT_PACKET)
-                if pkt:
-                    return pkt.options[1]
+        if timeout > 0:
+            # Got a timeout
+            pkt = self.wait_sentence(RESP_GOT_PACKET, timeout=timeout)
+            if pkt:
+                return pkt.options[1]
         else:
+            # Return imediately
             msg = self.get_packet()
             if msg and msg.cmd == RESP_GOT_PACKET:
                 return msg.options[1]
@@ -348,7 +353,8 @@ class WlModemBase(object):
                 "bit_error_rate": float(pkt.options[3])
             }
             return diag
-        return None
+        # Timed out, so returning empty dict
+        return dict()
 
     # ----------------------------------
     # Lower level and internal functions
@@ -380,7 +386,8 @@ class WlModemBase(object):
                     return msg
                 if msg.cmd == RESP_GOT_PACKET:
                     self._rx_queue.append(msg)
-            time.sleep(sleep_time)
+            if sleep_time:
+                time.sleep(sleep_time)
         return None
 
     def get_packet(self):
@@ -476,61 +483,3 @@ class WlModem(WlModemBase):
             raise WlModemGenericError("Error opening serial port {}".format(err))
 
         super(WlModem, self).__init__(self._serial, debug=debug)
-
-
-def main():
-    """ Demo code """
-    logging.basicConfig(level=logging.DEBUG)
-    import argparse
-    parser = argparse.ArgumentParser(description="Water Linked Modem example")
-    parser.add_argument('-D', '--device', action="store", required=True, type=str, help="Serial port.")
-    parser.add_argument('--baudrate', action="store", type=int, default=115200, help="Serial baudrate.")
-    parser.add_argument('-v' , '--verbose', action="store_true", help="Verbose.")
-    args = parser.parse_args()
-
-    modem = WlModem(args.device, debug=args.verbose)
-    try:
-        modem.connect()
-    except WlModemGenericError as err:
-        print("Error connecting to modem: {}".format(err))
-        sys.exit(1)
-
-    print("Set modem role and channel: ", end="")
-    success = modem.cmd_configure("a", 4)
-    if success:
-        print("success")
-    else:
-        print("failed")
-        sys.exit(1)
-
-    success = modem.cmd_flush_queue()
-    print("Flush      :", "success" if success else "failed")
-
-    data = b"HelloSea"
-    print("Sending '{}': ".format(data), end="")
-    success = modem.cmd_queue_packet(data)
-    print("success" if success else "failed")
-
-    import struct
-    data = struct.pack(">bbbbbbbb", 8, 7, 6, 5, 4, 3, 2, 1)
-    print("Sending encoded numbers {}: ".format(data), end="")
-    success = modem.cmd_queue_packet(data)
-    print("success" if success else "failed")
-
-    print("Queue length: ", modem.cmd_get_queue_length())
-    print("Diagnostic  : ", modem.cmd_get_diagnostic())
-
-    print("Wait for packet from other modem:")
-    get = 2
-    while get > 0:
-        pkt = modem.get_data_packet()
-        if pkt:
-            print("Got:", pkt)
-        get -= 1
-        time.sleep(0.1)
-
-    print("Diagnostic  : ", modem.cmd_get_diagnostic())
-
-
-if __name__ == "__main__":
-    main()
