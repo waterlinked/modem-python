@@ -102,6 +102,30 @@ if pkt:
     print("Got data:", pkt)
 ```
 
+## UDP-style transfers
+
+The `WlUDPSocket` class is a higher level abstraction which allows arbitrary sized UDP-like datagrams to be transferred.
+This style of transfer is suitable for short messages and has low overhead at 3 bytes for each
+datagram (1 start byte, 1 checksum and 1 end byte).
+The datagram will be corrupted by any single modem packet dropped (while still taking the full time to transmit),
+which means it is only suitable for short datagrams.
+The Modem-M64 has a payload size of 8 bytes, so the chance of success given a chance of any packet lost and number of packets transferred is given by:
+
+chance of success = (100 - chance of packet loss) / 100 ^ (number of packets sent) * 100
+
+For example, with a 5% chance of packet loss and datagram of 77 bytes (with the 3 overhead bytes this gives 10 packets):
+
+chance of success = (1.0-0.05)**10 * 100 = 59.8%
+
+```py
+from wlmodem import WlModem, WlUDPSocket
+modem = WlModem("/dev/ttyUSB0")
+modem.connect()
+wl_sock = WlUDPSocket(modem)
+wl_sock.send(b"There is an art, it says, or rather, a knack to flying. The knack lies in learning how to throw yourself at the ground and miss")
+received = wl_sock.receive()
+```
+
 ## Simulator
 
 A `WlModemSimulator` class can be used to simulate communication with a modem without a physical modem.
@@ -121,7 +145,7 @@ b'HelloSim'
 
 ## Example
 
-A larger example is available in [example/example.py](example/example.py).
+A larger examples are available in the [example/](example/) folder.
 
 ## Development
 
