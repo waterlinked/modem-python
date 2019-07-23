@@ -231,9 +231,13 @@ class WlModemBase(object):
         # Verify the modem responsd and is a supported version
         log.info("Connect to Water Linked Modem on %s", self._iodev.port)
         self.send_reset()
-        version = self.cmd_get_version()
+        try:
+            version = self.cmd_get_version()
+        except WlProtocolParseError as err:
+            log.warn("Connect error: {}".format(err))
+            version = None
         if not version:
-            log.error("Timeout connecting to modem")
+            log.error("Timeout/error connecting to modem")
             return False
         if version[0] != 1:
             log.warn("Unsupported major version {}".format(version))
@@ -243,7 +247,11 @@ class WlModemBase(object):
         log.info("Connect success. Modem protocol version %s", version)
 
         # Get payload size
-        payload = self.cmd_get_payload_size()
+        try:
+            payload = self.cmd_get_payload_size()
+        except WlProtocolParseError as err:
+            log.warn("Get payload error: {}".format(err))
+            payload = None
         if not payload:
             log.warn("Timeout getting payload size")
             return False
@@ -258,7 +266,11 @@ class WlModemBase(object):
         if not pkt:
             return None
 
-        version = [int(x) for x in pkt.options]
+        try:
+            version = [int(x) for x in pkt.options]
+        except TypeError:
+            log.warn("Version number is invalid: {}".format(pkt.options))
+            return None
         return version
 
     def cmd_get_payload_size(self, timeout=0.5):
@@ -381,6 +393,8 @@ class WlModemBase(object):
                 if msg.cmd == resp_id:
                     return msg
                 if msg.cmd == RESP_GOT_PACKET:
+                    # Got a data packet while waiting for another sentence
+                    # Queue it so we don't loose it
                     self._rx_queue.append(msg)
             if sleep_time:
                 time.sleep(sleep_time)
