@@ -23,19 +23,16 @@ When a full datagram is received by the modem it is put on a queue and can be re
 
 """
 from __future__ import division, print_function
-import sys
-import zlib
-import copy
 import threading
-import queue
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 import time
-import random
 import logging
 from abc import abstractmethod
-from collections import defaultdict
 from cobs import cobsr as cobs
 import crcmod
-from wlmodem import WlModem, WlModemSimulator
 
 
 # Logger

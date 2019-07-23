@@ -33,6 +33,7 @@ requires = [
     'setuptools',
     'pyserial',
     'crcmod',
+    'cobs',
 ]
 
 extras_require = {
