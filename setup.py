@@ -41,7 +41,7 @@ extras_require = {
     }
 
 setup(name='wlmodem',
-      version='1.2.0',
+      version='1.2.1',
       description='Python library for Water Linked underwater modems',
       long_description=long_description,
       long_description_content_type="text/markdown",

@@ -29,6 +29,7 @@ try:
 except ImportError:
     import Queue as queue
 import time
+import sys
 import logging
 from abc import abstractmethod
 from cobs import cobsr as cobs
@@ -37,6 +38,12 @@ import crcmod
 
 # Logger
 log = logging.getLogger(__file__)
+
+# Python2 detection
+IS_PY2 = False
+if sys.version_info < (3, 0):
+    IS_PY2 = True
+
 
 ### Debug
 def printable(ch):
@@ -53,6 +60,8 @@ def pretty_packet(pkt):
 
 
 FRAME_END = 0  # COBS guarantees no zeros in the payload
+if IS_PY2:
+    FRAME_END = chr(0)
 # The payload is internally checksummed by the modem, but we need to detect if a packet is dropped
 # so a simple CRC-8 is sufficient
 crc_func = crcmod.predefined.mkPredefinedCrcFun("crc-8")
@@ -63,6 +72,8 @@ def frame(data):
     crc = crc_func(data)
     framed = bytearray(data)
     framed.append(crc)
+    if IS_PY2:
+        framed = bytes(framed)
     framed = cobs.encode(framed)
     framed = bytearray(framed)
     framed.append(FRAME_END)
@@ -94,10 +105,12 @@ def unframe(buffer):
     if buffer and buffer[-1] == 0:
         buffer.pop()
 
+    if IS_PY2:
+        buffer = bytes(buffer)
     try:
         decoded = cobs.decode(buffer)
     except cobs.DecodeError as err:
-        log.warn("MSG Decode error {}".format(err))
+        log.warning("MSG Decode error {}".format(err))
         return False
 
     if not decoded:
@@ -107,19 +120,22 @@ def unframe(buffer):
     expected_crc = decoded[-1]
     data = decoded[:-1]
     data_crc = crc_func(data)
+    if IS_PY2:
+        expected_crc = ord(expected_crc)
     if data_crc != expected_crc:
-        log.warn("MSG CRC ERR. Expected {} Got {}".format(expected_crc, data_crc))
+        log.warning("MSG CRC ERR. Expected {} Got {}".format(expected_crc, data_crc))
         return False
 
     return data
 
 
-class WlUDPBase():
+class WlUDPBase(object):
     """
     WlUDPBase is the base class for sending/receiving arbitrary length data with a Water Linked Underwater Modem
     """
     def __init__(self, modem, desired_queue_length=2, debug=True):
-        super().__init__()
+        #super().__init__()
+        super(WlUDPBase, self).__init__()
         self._tx_buf = bytearray()
         self._rx_buf = bytearray()
         self.modem = modem
@@ -173,7 +189,7 @@ class WlUDPBase():
                     else:
                         # Error occured
                         if self.debug:
-                            log.warn("MSG: Invalid")
+                            log.warning("MSG: Invalid")
 
     @abstractmethod
     def _fill_tx_buf(self):
