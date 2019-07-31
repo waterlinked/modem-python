@@ -5,6 +5,7 @@ python:
     - "3.6"
 install: pip install coverage pytest pytest-flakes pytest-cov pytest-random
 script:
+    - python setup.py develop
     - pytest wlmodem
 #    - coverage run -m pytest wlmodem
 #    - coverage report -m
