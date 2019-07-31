@@ -8,6 +8,6 @@ script:
     - python setup.py develop
     - pytest wlmodem
     - coverage run -m pytest wlmodem
-    - coverage report -m
+    - coverage report -m --include "wlmodem/*"
 after_success:
   - coveralls
