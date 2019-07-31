@@ -6,8 +6,8 @@ python:
 install: pip install coverage python-coveralls pytest pytest-flakes pytest-cov pytest-random
 script:
     - python setup.py develop
-    - pytest wlmodem
+#    - pytest wlmodem
     - coverage run -m pytest wlmodem
-    - coverage report -m --include "wlmodem/*"
+    - coverage report -m
 after_success:
   - coveralls
