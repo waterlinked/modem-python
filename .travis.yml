@@ -17,5 +17,6 @@ deploy:
     password:
         secure: "WK6V4/zmZRsJ+h4mdZh6gBJeLhmtevOUQFe5BdkE99NvIBF5tViRpwG4e6dywC8B2UR1iPbTabxo37/xlnb2S1i7yWXJIIpjrlAquxmc5rZyygboI/2+itCJwa6tOqA3aljaIFAS0Thy1LHZeYoB+KFfT1blRY3z+s/M4LSIQVPKTpqn0PDG3ZfVcZidjmzGAk/FI6e1kRpAnAx09tfkFxSnCrPGD3wN12BMMMx8u8O8kkIYNYRHRD1c4aCDcVy6fp/XxowB8lw7DhSDjY2gc+XackuqEuadZZqsS65pLM8IJdtYEY0/7bYypWrrD3ffY1WL2rlj9a+iDyHFLo2oQqvPJ7P1eZ/YjQKc/azbq2E7to25Vc8KGlAiXajxrfHyuOEp00e2d8dk3n2x3AIU2niyfLy9ii1KSmjhtgNqrvuXVHj9r7qTIW5RUR9tlAWJNS+WMrntBQyrjrXMRmWSQHl4NlciUMzfKPU76Sehc588Ohz13xxccUQLtWadhutRqZ2Ij6xWkRRgG0Cymi7WBJIeNYYZmeyGAfikAlPOmwPmBkwjuCRGQHMF8fuvyR4kVNZePy/QkfcxWKjBDsDNjp/MsYt/GxEy8YTN7kQXd1+yrHaxiFmJIYdNu2tBnQWQVkXDLsHLYVtyflrWsaE9thZj2hCn1KD9gP09q0SFP+s="
     skip_existing: true  # Don't deploy from both 2.7 and 3.x
+    distributions: "sdist bdist_wheel"
     on:
         tags: true
