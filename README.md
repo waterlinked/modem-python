@@ -1,6 +1,7 @@
 # Python library for Water Linked underwater modems
 
 [![PyPI version](https://badge.fury.io/py/wlmodem.svg)](https://badge.fury.io/py/wlmodem)
+[![Build Status](https://travis-ci.org/waterlinked/modem-python.svg?branch=master)](https://travis-ci.org/waterlinked/modem-python)
 
 Python library for communicating with Water Linked underwater modems.
 
