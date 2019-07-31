@@ -3,10 +3,10 @@ language: python
 python:
     - "2.7"
     - "3.6"
-install: pip install tox-travis coverage pytest pytest-flakes pytest-cov pytest-random
+install: pip install tox-travis coverage pytest
 script:
     - tox
     - coverage run -m pytest wlmodem
-    - coverage -m
+    - coverage report -m
 after_success:
   - coveralls
