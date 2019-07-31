@@ -3,7 +3,7 @@ language: python
 python:
     - "2.7"
     - "3.6"
-install: pip install tox-travis
+install: pip install tox-travis coverage
 script:
     - tox
     - coverage run -m pytest wlmodem
