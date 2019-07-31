@@ -4,6 +4,9 @@ python:
     - "2.7"
     - "3.6"
 install: pip install tox-travis
-script: tox
+script:
+    - tox
+    - coverage run -m pytest wlmodem
+    - coverage -m
 after_success:
   - coveralls
