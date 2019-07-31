@@ -143,9 +143,9 @@ True
 b'HelloSim'
 ```
 
-## Example
+## Examples
 
-A larger examples are available in the [example/](example/) folder.
+Multiple examples showing how to use the API is available in the [example/](example/) folder.
 
 ## Development
 
