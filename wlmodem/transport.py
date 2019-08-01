@@ -194,7 +194,6 @@ class WlUDPBase(object):
     @abstractmethod
     def _fill_tx_buf(self):
         """ This function is called when _tx_buf is too short to fill a packet and more data is needed"""
-        pass
 
     def _get_next_tx_packet(self):
         """ Get next packet for modem to transmit """
@@ -210,7 +209,6 @@ class WlUDPBase(object):
     @abstractmethod
     def _fill_rx_buf(self, data):
         """ This function is called when a full datagram is received to fill the received queue """
-        pass
 
     def _extract_frame_from_rx_buf(self):
         idx = self._rx_buf.find(FRAME_END)
