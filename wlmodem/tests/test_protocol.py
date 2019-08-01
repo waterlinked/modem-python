@@ -35,6 +35,15 @@ class TestProtoParser(unittest.TestCase):
         self.assertEqual(res.dir, ord("r"))
         self.assertEqual(res.options, [b'8', b'\n\n\n\n\n\n\n'])
 
+    def test_parsing_too_short_is_detected(self):
+        parser = WlProtocolParser()
+        with self.assertRaises(WlProtocolParseError):
+            parser.parse(b'wr')
+
+    def test_parsing_missing_sop_is_detected(self):
+        parser = WlProtocolParser()
+        with self.assertRaises(WlProtocolParseError):
+            parser.parse(b'zrv')
 
 class TestWlModemLowLevel(unittest.TestCase):
     def _make_one(self, data):
@@ -101,6 +110,18 @@ class TestWlModem(unittest.TestCase):
         modem, _ = self._make_one(b"")
         self.assertFalse(modem.connect())
 
+    def test_connect_with_garbage_is_detected(self):
+        modem, _ = self._make_one(b"garbage\n")
+        self.assertFalse(modem.connect())
+
+    def test_connect_with_unsupported_version_is_detected(self):
+        modem, _ = self._make_one(b"wrv,2,0,1\n")
+        self.assertFalse(modem.connect())
+
+    def test_connect_with_failing_cmd_payload_is_detected(self):
+        modem, _ = self._make_one(b"wrv,1,0,1\ngarbage\n")
+        self.assertFalse(modem.connect())
+
     def test_connect_with_response_is_success(self):
         modem, _ = self._make_one(b"wrv,1,0,1\nwrn,8\n")
         self.assertTrue(modem.connect())
@@ -111,15 +132,30 @@ class TestWlModem(unittest.TestCase):
         success = modem.cmd_configure("a", 4)
         self.assertTrue(success)
 
-    def test_cmd_configure_invalid_fails(self):
+    def test_cmd_configure_detects_error(self):
         modem, _ = self._make_one(b"wr?\n")
         success = modem.cmd_configure("a", 4, timeout=0.01)
         self.assertFalse(success)
+
+    def test_cmd_configure_returns_fail_if_invalid_channel(self):
+        modem, _ = self._make_one(b"wr?\n")
+        with self.assertRaises(WlModemGenericError):
+            modem.cmd_configure("a", 9, timeout=0.01)
+
+    def test_cmd_get_payload_size_without_response_does_not_crash(self):
+        modem, _ = self._make_one(b"")
+        _len = modem.cmd_get_payload_size()
+        self.assertEqual(_len, 0)
 
     def test_cmd_queue_length_works(self):
         modem, _ = self._make_one(b"wrl,8\n")
         _len = modem.cmd_get_queue_length()
         self.assertEqual(_len, 8)
+
+    def test_cmd_queue_length_without_response_does_not_crash(self):
+        modem, _ = self._make_one(b"")
+        _len = modem.cmd_get_queue_length()
+        self.assertEqual(_len, -1)
 
     def test_cmd_flush_works(self):
         modem, _ = self._make_one(b"wrf,a\n")
@@ -131,10 +167,21 @@ class TestWlModem(unittest.TestCase):
         success = modem.cmd_flush_queue()
         self.assertFalse(success)
 
+    def test_cmd_flush_fails_without_response_does_not_crash(self):
+        modem, _ = self._make_one(b"")
+        success = modem.cmd_flush_queue()
+        self.assertFalse(success)
+
     def test_cmd_diagnostic_works(self):
         modem, _ = self._make_one(b"wrd,n,1,2,3.0\n")
         diag = modem.cmd_get_diagnostic()
         expect = dict(link_up=False, pkt_cnt=1, pkt_loss_cnt=2, bit_error_rate=3.0)
+        self.assertDictEqual(diag, expect)
+
+    def test_cmd_diagnostic_without_response_does_not_crash(self):
+        modem, _ = self._make_one(b"")
+        diag = modem.cmd_get_diagnostic()
+        expect = dict()
         self.assertDictEqual(diag, expect)
 
     def test_cmd_version(self):
@@ -142,11 +189,21 @@ class TestWlModem(unittest.TestCase):
         ver = modem.cmd_get_version()
         self.assertListEqual(ver, [1, 2,3])
 
+    def test_cmd_version_does_not_crash_on_invalid_response(self):
+        modem, _ = self._make_one(b"wrv,x,y,z\n")
+        ver = modem.cmd_get_version()
+        self.assertEqual(ver, None)
+
     def test_cmd_queue_packet(self):
         modem, _ = self._make_one(b"wrq,a\n")
         modem.payload_size = 8  # Faking that we are connected
         success = modem.cmd_queue_packet(b"12345678")
         self.assertTrue(success)
+
+    def test_cmd_queue_packet_without_connection_gives_exception(self):
+        modem, _ = self._make_one(b"wrq,a\n")
+        with self.assertRaises(WlModemGenericError):
+            modem.cmd_queue_packet(b"1234567")
 
     def test_cmd_queue_packet_invalid_size_fails(self):
         modem, _ = self._make_one(b"wrq,a\n")

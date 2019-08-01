@@ -7,14 +7,7 @@ import logging
 import time
 import sys
 import serial
-HAS_CRC = False
-try:
-    import crcmod
-    HAS_CRC = True
-except ImportError:
-    # Install crcmod to support CRC checking:
-    # pip install crcmod
-    pass
+import crcmod
 
 
 # Logger
@@ -123,8 +116,7 @@ class WlProtocolParser(object):
     """
     def __init__(self):
         self.crc_func = None
-        if HAS_CRC:
-            self.crc_func = crcmod.predefined.mkPredefinedCrcFun("crc-8")
+        self.crc_func = crcmod.predefined.mkPredefinedCrcFun("crc-8")
 
     @staticmethod
     def do_format_checksum(checksum):
@@ -134,8 +126,6 @@ class WlProtocolParser(object):
         return bytes("*{:02x}".format(checksum), "ascii")
 
     def checksum_for_buffer(self, data):
-        if not self.crc_func:
-            raise WlModemGenericError("pip install crcmod to get support for checksum")
         if IS_PY2:
             csum = self.crc_func(bytes(data))
         else:
@@ -234,13 +224,13 @@ class WlModemBase(object):
         try:
             version = self.cmd_get_version()
         except WlProtocolParseError as err:
-            log.warn("Connect error: {}".format(err))
+            log.warning("Connect error: {}".format(err))
             version = None
         if not version:
             log.error("Timeout/error connecting to modem")
             return False
         if version[0] != 1:
-            log.warn("Unsupported major version {}".format(version))
+            log.warning("Unsupported major version {}".format(version))
             return False
 
         version = ".".join([str(x) for x in version])
@@ -250,10 +240,10 @@ class WlModemBase(object):
         try:
             payload = self.cmd_get_payload_size()
         except WlProtocolParseError as err:
-            log.warn("Get payload error: {}".format(err))
+            log.warning("Get payload error: {}".format(err))
             payload = None
         if not payload:
-            log.warn("Timeout getting payload size")
+            log.warning("Timeout getting payload size")
             return False
         self.payload_size = payload
 
@@ -268,8 +258,8 @@ class WlModemBase(object):
 
         try:
             version = [int(x) for x in pkt.options]
-        except TypeError:
-            log.warn("Version number is invalid: {}".format(pkt.options))
+        except (TypeError, ValueError):
+            log.warning("Version number is invalid: {}".format(pkt.options))
             return None
         return version
 

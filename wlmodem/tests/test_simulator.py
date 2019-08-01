@@ -57,3 +57,8 @@ class TestWlModemSimulator(unittest.TestCase):
         # Now it should be
         data = modem.get_data_packet(timeout=0.5)
         self.assertEqual(data, b"12345678")
+
+    def test_invalid_request_is_detected(self):
+        modem = self._make_one()
+        result = modem.request(123)
+        self.assertEqual(result, None)
