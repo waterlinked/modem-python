@@ -1,22 +1,21 @@
 sudo: false
 language: python
 python:
-    - "2.7"
-    - "3.6"
+- '2.7'
+- '3.6'
 install: pip install coverage python-coveralls pytest pytest-flakes pytest-cov pytest-random
 script:
-    - python setup.py develop
-#    - pytest wlmodem
-    - coverage run -m pytest wlmodem
-    - coverage report -m
+- python setup.py develop
+- coverage run -m pytest wlmodem
+- coverage report -m
 after_success:
-  - coveralls
+- coveralls
 deploy:
-    provider: pypi
-    user: "waterlinked"
-    password:
-        secure: "WK6V4/zmZRsJ+h4mdZh6gBJeLhmtevOUQFe5BdkE99NvIBF5tViRpwG4e6dywC8B2UR1iPbTabxo37/xlnb2S1i7yWXJIIpjrlAquxmc5rZyygboI/2+itCJwa6tOqA3aljaIFAS0Thy1LHZeYoB+KFfT1blRY3z+s/M4LSIQVPKTpqn0PDG3ZfVcZidjmzGAk/FI6e1kRpAnAx09tfkFxSnCrPGD3wN12BMMMx8u8O8kkIYNYRHRD1c4aCDcVy6fp/XxowB8lw7DhSDjY2gc+XackuqEuadZZqsS65pLM8IJdtYEY0/7bYypWrrD3ffY1WL2rlj9a+iDyHFLo2oQqvPJ7P1eZ/YjQKc/azbq2E7to25Vc8KGlAiXajxrfHyuOEp00e2d8dk3n2x3AIU2niyfLy9ii1KSmjhtgNqrvuXVHj9r7qTIW5RUR9tlAWJNS+WMrntBQyrjrXMRmWSQHl4NlciUMzfKPU76Sehc588Ohz13xxccUQLtWadhutRqZ2Ij6xWkRRgG0Cymi7WBJIeNYYZmeyGAfikAlPOmwPmBkwjuCRGQHMF8fuvyR4kVNZePy/QkfcxWKjBDsDNjp/MsYt/GxEy8YTN7kQXd1+yrHaxiFmJIYdNu2tBnQWQVkXDLsHLYVtyflrWsaE9thZj2hCn1KD9gP09q0SFP+s="
-    skip_existing: true  # Don't deploy from both 2.7 and 3.x
-    distributions: "sdist bdist_wheel"
-    on:
-        tags: true
+  provider: pypi
+  user: waterlinked
+  password:
+    secure: MeT7OgvCjW3g9ryClZjLNVgT5XZca55Lx7ltF+fRL+125vWpLhQIWRA8ySP9WHC0BBIDXbzTzt6lOIXCdlGea89D/uBHJZa+uXD7aEvVaBxWfyyKP7q8MDdNuMyAycIn0SGGAXJJpJqURgW1eW0ZlnifLDFCvvvt7kIslYYfyBauIsHF6fcRqiCUCrNr6jfAbXxKCiCzuWcef4k0+BWyakp7CdQnyGEl9S9+eEHbJ2ZCk6uasn60lTzDoa486E7rQC9YszKSQRC4R24ij/H7Q+cwcHhyJHAIR+K+9gGQvd3PWVsGl+XxlTOuZRp/GF4fLaEyOOg/kcGUr602C733QjxhpYCvsqsYTgV8/9HLyRmV+wPpck26dlgtZqCyV50K2MiHcogDJGcnJwUT2rYjj2afZBz0300gKkmWZs85BR/O9TC+XMJHTuy+kdkB0oFCcluknajKNod+a1uNR4HWcuKar7ILPFR1/X98njR+3/SCJUVxZ0U8pH+/yDffLnMkdqN239C6/0/CsJiHRDXF5UpukZfv4dG95atOdAQDEzAZ4RYQPs5jb+usUD1TWuAMNe7cD9eFPF3hoK+SGxvDmsEoIz4wzcDQVmljrgNvlPzLQANEWOkg7LQa0KsbxQzF/HSwfJfzAgGEHw+7PfzZ/49j+Vlvurakyv+NxpO475U=
+  skip_existing: true
+  distributions: sdist bdist_wheel
+  on:
+    tags: true
