@@ -124,7 +124,7 @@ For example, with a 5% chance of packet loss and datagram of 77 bytes (with the 
 59.87369392383787
 ```
 
-Ie. there is a 59% chance of successful transmission.
+Ie. there is a 60% chance of successful transmission.
 
 Example of how to use the `WLUDPSocket` class for transmission and reception of data:
 
