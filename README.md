@@ -167,3 +167,5 @@ Run unit-tests with:
 pip install tox
 tox
 ```
+
+Further details on development of the repository is described in [README_maintain.md](README_maintain.md)
