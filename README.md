@@ -113,11 +113,19 @@ The datagram will be corrupted by any single modem packet dropped (while still t
 which means it is only suitable for short datagrams.
 The Modem-M64 has a payload size of 8 bytes, so the chance of success given a chance of any packet lost and number of packets transferred is given by:
 
-chance of success = (100 - chance of packet loss) / 100 ^ (number of packets sent) * 100
+```py
+chance_of_success = ((100.0 - chance_of_packet_loss) / 100) ** (number_of_packets_sent) * 100
+```
 
 For example, with a 5% chance of packet loss and datagram of 77 bytes (with the 3 overhead bytes this gives 10 packets):
 
-chance of success = (1.0-0.05)**10 * 100 = 59.8%
+```py
+>>> ((100.0 - 5) / 100)**10 * 100
+59.87369392383787
+```
+
+Ie. there is a 59% chance of successful transmission.
+
 
 ```py
 from wlmodem import WlModem, WlUDPSocket
