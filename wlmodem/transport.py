@@ -123,7 +123,7 @@ def unframe(buffer):
     if IS_PY2:
         expected_crc = ord(expected_crc)
     if data_crc != expected_crc:
-        log.warning("MSG CRC ERR. Expected {} Got {}".format(expected_crc, data_crc))
+        log.warning("CRC ERR: Sender crc: {:02x} Received data crc: {:02x}".format(expected_crc, data_crc))
         return False
 
     return data
