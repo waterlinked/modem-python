@@ -133,20 +133,28 @@ class WlUDPBase(object):
     """
     WlUDPBase is the base class for sending/receiving arbitrary length data with a Water Linked Underwater Modem
     """
-    def __init__(self, modem, desired_queue_length=2, debug=True):
-        #super().__init__()
+    def __init__(self, modem, desired_queue_length=2, diagnostic_poll_time=0, debug=True):
         super(WlUDPBase, self).__init__()
         self._tx_buf = bytearray()
         self._rx_buf = bytearray()
+        # Reference to the wlmodem to use
         self.modem = modem
+        # How many packets to queue in the modem at any time
         self.desired_queue_length = desired_queue_length
         self.debug = debug
+        # Periodically load diagnostic and store it in the object for the user
+        # to be able to refer to it
+        self.diagnostic = dict()
+        # How often do we update the diagnostic
+        self.diagnostic_poll_time = diagnostic_poll_time
+        # Timestamp for next update of diagnostic
+        self._diagnostic_timeout = 0
 
     @property
     def payload_size(self):
         return self.modem.payload_size
 
-    def run_send(self):
+    def _run_send(self):
         """ Check if we need to add more data to the modem for transmission """
         if self.modem.cmd_get_queue_length() < self.desired_queue_length:
             # Tx queue on modem is getting low, lets add another packet
@@ -163,7 +171,12 @@ class WlUDPBase(object):
                     log.info("Queing packet {}".format(pretty_packet(send)))
                 self.modem.cmd_queue_packet(send)
 
-    def run_receive(self):
+        if self.diagnostic_poll_time > 0 and time.time() > self._diagnostic_timeout:
+            # Update diagnostic data if enabled and we have timed out
+            self.diagnostic = self.modem.cmd_get_diagnostic()
+            self._diagnostic_timeout = time.time() + self.diagnostic_poll_time
+
+    def _run_receive(self):
         """ Check if we have gotten any new data from the modem """
         received = self.modem.get_data_packet(0)
         if received:
@@ -234,10 +247,12 @@ class WlUDPSocket(WlUDPBase):
     Internally it uses a thread to frame, packetizes and sends the datagrams given via the "send" function.
     When a full datagram is received by the modem it is put on a queue and can be retrieved with the "receive" function.
 
-    Be careful of accessing the internal variables in this object since it is run in a different thread
+    Warning: Be careful of accessing the internal variables/functions (ie anything starting with _) since it can lead to upredictible results.
+    Warning: Calling functions on the "wlmodem" passed to this object can lead to unpredictible results since the WlUDPSocket
+             and your code might access the serial port at the same time.
     """
 
-    def __init__(self, modem, tx_max=0, rx_max=0, sleep_time=0.2, debug=False):
+    def __init__(self, modem, tx_max=0, rx_max=0, sleep_time=0.2, desired_queue_length=2, diagnostic_poll_time=0, debug=False):
         """
         Initialize WlUDPSocket. Use "send" to send datagrams and "receive" to get received datagrams.
 
@@ -246,7 +261,7 @@ class WlUDPSocket(WlUDPBase):
         sleep_time sets the number of seconds before checking if the modem needs more data
         debug can be set to True to enable mode debug output
         """
-        WlUDPBase.__init__(self, modem, debug=debug)
+        WlUDPBase.__init__(self, modem, diagnostic_poll_time=diagnostic_poll_time, desired_queue_length=desired_queue_length, debug=debug)
         self.sleep_time = sleep_time
         self._tx_queue = queue.Queue(maxsize=tx_max)
         self._rx_queue = queue.Queue(maxsize=rx_max)
@@ -270,6 +285,24 @@ class WlUDPSocket(WlUDPBase):
         except queue.Full:
             return False
 
+    def send_qsize(self):
+        """
+        Return the number of datagrams which are queued but have not started
+        transmission yet.
+        """
+        return self._tx_queue.qsize()
+
+    def send_flush(self):
+        """
+        Flush send queue
+        """
+        try:
+            # Flush send queue
+            while True:
+                self._tx_queue.get(block=False)
+        except queue.Empty:
+            pass
+
     def receive(self, block=False):
         """ Get datagram if one is available.
         If block is True it waits until a datagram is available and returns.
@@ -280,6 +313,23 @@ class WlUDPSocket(WlUDPBase):
             return self._rx_queue.get(block=block)
         except queue.Empty:
             return None
+
+    def receive_qsize(self):
+        """
+        Return the number of datagrams which have been receved but not read yet.
+        """
+        return self._rx_queue.qsize()
+
+    def receive_flush(self):
+        """
+        Flush receive queue
+        """
+        try:
+            # Flush receive queue
+            while True:
+                self._rx_queue.get(block=False)
+        except queue.Empty:
+            pass
 
     def _fill_tx_buf(self):
         try:
@@ -305,8 +355,8 @@ class WlUDPSocket(WlUDPBase):
     def run(self):
         """ Worker thread main function. You do not need to call this function, it is run automatically """
         while self.run_event.is_set():
-            self.run_send()
-            self.run_receive()
+            self._run_send()
+            self._run_receive()
             time.sleep(self.sleep_time)
 
     def stop(self):
