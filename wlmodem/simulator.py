@@ -12,7 +12,7 @@ from .protocol import ModemSentence
 
 
 class MockIODev():
-    """ Mock io device for simualtor and unit testing """
+    """ Mock io device for simulator and unit testing """
     def __init__(self, in_buf):
         self.in_buf = bytearray(in_buf)
         self.out_buf = bytearray()
