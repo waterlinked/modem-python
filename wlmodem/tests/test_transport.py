@@ -93,3 +93,20 @@ class TestTransport(unittest.TestCase):
         sock.receive_flush()
         # Queue size should now be back to zero
         self.assertEqual(sock.receive_qsize(), 0)
+
+    def test_diagnostic_polling(self):
+        modem = WlModemSimulator(0, 0, 0)
+        modem.connect()
+        sock = WlUDPSocket(modem, debug=True, sleep_time=0, diagnostic_poll_time=0.1)
+
+        # Check no data yet
+        self.assertDictEqual(sock.diagnostic, dict())
+
+        data = b"123456789"
+        sock.send(data)
+
+        # Wait for packets to be transmitted
+        time.sleep(0.5)
+
+        # Check diagnostic has been updated
+        self.assertEqual(sock.diagnostic["pkt_cnt"], 2)
