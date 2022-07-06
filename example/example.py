@@ -1,5 +1,5 @@
 """
-Example of using the wlmodem libarary
+Example of using the wlmodem library
 """
 from __future__ import division, print_function
 import logging
