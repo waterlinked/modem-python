@@ -1,5 +1,7 @@
 # wl-95046 Python library for Water Linked underwater modems
 
+> :warning: This library is no longer maintained since the Modem M64 is no longer in sale.
+
 [![PyPI version](https://badge.fury.io/py/wlmodem.svg)](https://badge.fury.io/py/wlmodem)
 [![Build Status](https://travis-ci.org/waterlinked/modem-python.svg?branch=master)](https://travis-ci.org/waterlinked/modem-python)
 [![Coverage Status](https://coveralls.io/repos/github/waterlinked/modem-python/badge.svg?branch=master)](https://coveralls.io/github/waterlinked/modem-python?branch=master)
